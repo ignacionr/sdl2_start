@@ -1,6 +1,5 @@
-CXXFLAGS=-std=c++14
+CXXFLAGS=-std=c++17
 LDFLAGS=-lSDL2 -lSDL2_image
-CXXFLAGS=-std=c++14
 
 test: test.o
 	$(CXX) test.o -o test $(LDFLAGS)

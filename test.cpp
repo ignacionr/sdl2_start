@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <memory>
+#include <iostream>
+#include <list>
 
 #include "sdlsurface.h"
 #include "scene.h"
@@ -10,32 +12,56 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
-int main(int argc, char *args[])
+class Program
 {
-    SDL_Window *window = NULL;
+public:
+    ~Program();
+    int run(int speed);
+
+private:
+    SDL_Window *_window{nullptr};
+};
+
+Program::~Program()
+{
+    if (_window)
+    {
+        SDL_DestroyWindow(_window);
+    }
+}
+
+int Program::run(int speed)
+{
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
-        return 1;
+        // C Runtime writing to the stderr
+        // fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
+        // fputs("This is an error!", stderr);
+        // C++ Runtime writing to the stderr
+        std::cerr << "Could not initialize sdl2: "
+                  << SDL_GetError() << std::endl;
+        return -1; // return to the OS
     }
-    window = SDL_CreateWindow(
+    // SDL_Window *window = NULL;   // assingment initialization
+    _window = SDL_CreateWindow(
         "hello_sdl2",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         SCREEN_WIDTH, SCREEN_HEIGHT,
         SDL_WINDOW_SHOWN);
-    if (window == NULL)
+
+    if (_window == NULL)
     {
-        fprintf(stderr, "could not create window: %s\n", SDL_GetError());
-        return 1;
+        std::cerr << "Could not create a window :" << SDL_GetError() << std::endl;
+        return -1;
     }
-    // SDLSurface screenSurface(window);
-    // auto white = SDL_MapRGB(screenSurface.format(), 0xFF, 0xFF, 0xFF);
-    // auto red = SDL_MapRGB(screenSurface.format(), 0xFF, 0x0, 0x0);
     SDL_Rect rc{0, 0, 100, 100};
 
-    auto renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    auto renderer{SDL_CreateRenderer(_window,
+                                     -1,
+                                     SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE)}; // render is an abstract class
     if (!renderer)
     {
+        std::cerr << "Could not create a renderer :" << SDL_GetError() << std::endl;
         return -1;
     }
 
@@ -43,27 +69,44 @@ int main(int argc, char *args[])
     {
         SDLSurface cat("rsc/download.jpeg");
         cat_texture = std::make_unique<SDLTexture>(renderer, cat);
-    }
+    } // the destructor for cat is called right here
 
     SDL_Event ev;
+    int center = (SCREEN_HEIGHT / 2) - rc.h;
     for (auto waitResult = SDL_PollEvent(&ev); !waitResult || ev.type != SDL_QUIT; waitResult = SDL_PollEvent(&ev))
     {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
 
-        // SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-        // SDL_RenderFillRect(renderer, &rc);
-
         SDL_RenderCopy(renderer, *cat_texture, NULL, &rc);
 
-        // SDL_FillRect(screenSurface, NULL, white);
-        // SDL_FillRect(screenSurface, &rc, red);
-        rc.y += 4;
+        // HOMEWORK: the speed of movement is currently 4 (static)
+        //           SCREEN_HEIGHT is the total of the movement, after which it will wrapup [0-SCREEN_HEIGHT)
+        //           let's make it so the speed is greater the farther the image is from the center
+        //           center = SCREEN_HEIGHT / 2
+        //           distance_to_center = abs(rc.y - center)
+        if (rc.y > center)
+        {
+            rc.y += speed * 2;
+        }
+        else
+        {
+            rc.y += speed;
+        }
+
         rc.y %= SCREEN_HEIGHT;
         SDL_RenderPresent(renderer);
-        // SDL_UpdateWindowSurface(window);
     }
-    SDL_DestroyWindow(window);
+
     SDL_Quit();
     return 0;
+}
+
+int main(int argc, char *args[])
+{
+    // create an instance of the program
+    Program program;
+    return program.run(4);
+    // run it
+    // return the value yielded
 }

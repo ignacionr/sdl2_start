@@ -16,7 +16,7 @@ class Program
 {
 public:
     ~Program();
-    int run();
+    int run(int speed);
 
 private:
     SDL_Window *_window{nullptr};
@@ -30,7 +30,7 @@ Program::~Program()
     }
 }
 
-int Program::run()
+int Program::run(int speed)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -72,6 +72,7 @@ int Program::run()
     } // the destructor for cat is called right here
 
     SDL_Event ev;
+    int center = (SCREEN_HEIGHT / 2) - rc.h;
     for (auto waitResult = SDL_PollEvent(&ev); !waitResult || ev.type != SDL_QUIT; waitResult = SDL_PollEvent(&ev))
     {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -84,7 +85,15 @@ int Program::run()
         //           let's make it so the speed is greater the farther the image is from the center
         //           center = SCREEN_HEIGHT / 2
         //           distance_to_center = abs(rc.y - center)
-        rc.y += 4;
+        if (rc.y > center)
+        {
+            rc.y += speed * 2;
+        }
+        else
+        {
+            rc.y += speed;
+        }
+
         rc.y %= SCREEN_HEIGHT;
         SDL_RenderPresent(renderer);
     }
@@ -97,7 +106,7 @@ int main(int argc, char *args[])
 {
     // create an instance of the program
     Program program;
-    return program.run();
+    return program.run(4);
     // run it
     // return the value yielded
 }

@@ -72,6 +72,8 @@ int Program::run()
     } // the destructor for cat is called right here
 
     SDL_Event ev;
+    int center = SCREEN_HEIGHT / 2;
+    int speed = 4;
     for (auto waitResult = SDL_PollEvent(&ev); !waitResult || ev.type != SDL_QUIT; waitResult = SDL_PollEvent(&ev))
     {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -84,7 +86,15 @@ int Program::run()
         //           let's make it so the speed is greater the farther the image is from the center
         //           center = SCREEN_HEIGHT / 2
         //           distance_to_center = abs(rc.y - center)
-        rc.y += 4;
+        if (rc.y > center)
+        {
+            rc.y += speed * 2;
+        }
+        else
+        {
+            rc.y += speed;
+        }
+
         rc.y %= SCREEN_HEIGHT;
         SDL_RenderPresent(renderer);
     }

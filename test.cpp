@@ -69,7 +69,7 @@ int Program::run(int speed)
     } // the destructor for cat is called right here
 
     SDL_Event ev;
-    int center = (SCREEN_HEIGHT / 2) - rc[0].h;
+    int center = (SCREEN_HEIGHT / 2) - rc[0].h / 2;
     sdl::Color white{255, 255, 255};
 
     for (auto waitResult = SDL_PollEvent(&ev); !waitResult || ev.type != SDL_QUIT; waitResult = SDL_PollEvent(&ev))
